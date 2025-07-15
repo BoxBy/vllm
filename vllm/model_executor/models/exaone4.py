@@ -164,8 +164,10 @@ class Exaone4Attention(nn.Module):
         q, k, v = qkv.split([self.q_size, self.kv_size, self.kv_size], dim=-1)
 
         # Add qk-norm
-        q = self.q_norm(q)
-        k = self.k_norm(k)
+        q = q.reshape(-1, self.num_heads, self.head_dim)
+        k = k.reshape(-1, self.num_kv_heads, self.head_dim)
+        q = self.q_norm(q).reshape(-1, self.q_size).to(q.dtype)
+        k = self.k_norm(k).reshape(-1, self.kv_size).to(k.dtype)
         
         q, k = self.rotary_emb(positions, q, k)
         attn_output = self.attn(q, k, v)
